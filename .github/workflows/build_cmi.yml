@@ -14,11 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: clang install
-    - run: mkdir proton-clang
-    - run: cd proton-clang
-    - run: wget https://github.com/kdrag0n/proton-clang/archive/refs/tags/20210522.zip
-    - run: unzip 20210522.zip
-    - run: cd ..
+    - run: mkdir proton-clang && cd proton-clang && wget https://github.com/kdrag0n/proton-clang/archive/refs/tags/20210522.zip && unzip 20210522.zip && cd ..
 
     
     - name: build
