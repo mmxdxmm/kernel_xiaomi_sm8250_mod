@@ -5,8 +5,9 @@
 # Ensure the script exits on error
 set -e
 
-TOOLCHAIN_PATH=$HOME/proton-clang/proton-clang-20210522/bin
-GIT_COMMIT_ID=$(git rev-parse --short=8 HEAD)
+TOOLCHAIN_PATH=/lib/llvm-20/bin
+GIT_COMMIT_ID="mmxdxmm"
+
 TARGET_DEVICE=$1
 
 if [ -z "$1" ]; then
@@ -31,15 +32,15 @@ fi
 echo "TOOLCHAIN_PATH: [$TOOLCHAIN_PATH]"
 export PATH="$TOOLCHAIN_PATH:$PATH"
 
-if ! command -v aarch64-linux-gnu-ld >/dev/null 2>&1; then
-    echo "[aarch64-linux-gnu-ld] does not exist, please check your environment."
-    exit 1
-fi
+#if ! command -v aarch64-linux-gnu-ld >/dev/null 2>&1; then
+#    echo "[aarch64-linux-gnu-ld] does not exist, please check your environment."
+#    exit 1
+#fi
 
-if ! command -v arm-linux-gnueabi-ld >/dev/null 2>&1; then
-    echo "[arm-linux-gnueabi-ld] does not exist, please check your environment."
-    exit 1
-fi
+#if ! command -v arm-linux-gnueabi-ld >/dev/null 2>&1; then
+#    echo "[arm-linux-gnueabi-ld] does not exist, please check your environment."
+#    exit 1
+#fi
 
 if ! command -v clang >/dev/null 2>&1; then
     echo "[clang] does not exist, please check your environment."
@@ -55,7 +56,7 @@ export PATH="/usr/lib/ccache:$PATH"
 echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 
-MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
+MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu- LLVM=1 LD=ld.lld"
 
 
 if [ "$1" == "j1" ]; then
@@ -108,56 +109,58 @@ rm -rf anykernel/
 
 echo "Clone AnyKernel3 for packing kernel (repo: https://github.com/liyafe1997/AnyKernel3)"
 git clone https://github.com/liyafe1997/AnyKernel3 -b kona --single-branch --depth=1 anykernel
+#unzip anykernel.zip
 
 # Add date to local version
 local_version_str="-perf"
 local_version_date_str="-$(date +%Y%m%d)-${GIT_COMMIT_ID}-perf"
 
+sed -i "s/${local_version_date_str}/${local_version_str}/g" arch/arm64/configs/${TARGET_DEVICE}_defconfig
 sed -i "s/${local_version_str}/${local_version_date_str}/g" arch/arm64/configs/${TARGET_DEVICE}_defconfig
 
 # ------------- Building for AOSP -------------
 
-echo "Building for AOSP......"
-make $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+#echo "Building for AOSP......"
+#make $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
-if [ $KSU_ENABLE -eq 1 ]; then
-    scripts/config --file out/.config -e KSU
-else
-    scripts/config --file out/.config -d KSU
-fi
+#if [ $KSU_ENABLE -eq 1 ]; then
+#    scripts/config --file out/.config -e KSU
+#else
+#    scripts/config --file out/.config -d KSU
+#fi
 
-make $MAKE_ARGS -j$(nproc)
-
-
-if [ -f "out/arch/arm64/boot/Image" ]; then
-    echo "The file [out/arch/arm64/boot/Image] exists. AOSP Build successfully."
-else
-    echo "The file [out/arch/arm64/boot/Image] does not exist. Seems AOSP build failed."
-    exit 1
-fi
-
-echo "Generating [out/arch/arm64/boot/dtb]......"
-find out/arch/arm64/boot/dts -name '*.dtb' -exec cat {} + >out/arch/arm64/boot/dtb
-
-rm -rf anykernel/kernels/
-
-mkdir -p anykernel/kernels/
-
-cp out/arch/arm64/boot/Image anykernel/kernels/
-cp out/arch/arm64/boot/dtb anykernel/kernels/
-
-cd anykernel 
-
-ZIP_FILENAME=Kernel_AOSP_${TARGET_DEVICE}_${KSU_ZIP_STR}_$(date +'%Y%m%d_%H%M%S')_anykernel3_${GIT_COMMIT_ID}.zip
-
-zip -r9 $ZIP_FILENAME ./* -x .git .gitignore out/ ./*.zip
-
-mv $ZIP_FILENAME ../
-
-cd ..
+#make $MAKE_ARGS -j$(nproc)
 
 
-echo "Build for AOSP finished."
+#if [ -f "out/arch/arm64/boot/Image" ]; then
+#    echo "The file [out/arch/arm64/boot/Image] exists. AOSP Build successfully."
+#else
+#    echo "The file [out/arch/arm64/boot/Image] does not exist. Seems AOSP build failed."
+#    exit 1
+#fi
+
+#echo "Generating [out/arch/arm64/boot/dtb]......"
+#find out/arch/arm64/boot/dts -name '*.dtb' -exec cat {} + >out/arch/arm64/boot/dtb
+
+#rm -rf anykernel/kernels/
+
+#mkdir -p anykernel/kernels/
+
+#cp out/arch/arm64/boot/Image anykernel/kernels/
+#cp out/arch/arm64/boot/dtb anykernel/kernels/
+
+#cd anykernel 
+
+#ZIP_FILENAME=Kernel_AOSP_${TARGET_DEVICE}_${KSU_ZIP_STR}_$(date +'%Y%m%d_%H%M%S')_anykernel3_${GIT_COMMIT_ID}.zip
+
+#zip -r9 $ZIP_FILENAME ./* -x .git .gitignore out/ ./*.zip
+
+#mv $ZIP_FILENAME ../
+
+#cd ..
+
+
+#echo "Build for AOSP finished."
 
 # ------------- End of Building for AOSP -------------
 #  If you don't need AOSP you can comment out the above block [Building for AOSP]
@@ -228,7 +231,7 @@ sed -i 's/\/\/39 01 00 00 01 00 03 51 03 FF/39 01 00 00 01 00 03 51 03 FF/g' ${d
 sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${dts_source}/dsi-panel-j2-p2-1-38-0c-0a-dsc-cmd.dtsi
 
 
-make $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+make CFLAGS="-O3 -march=armv8-a -flto" LDFLAGS="-flto" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config -e KSU
@@ -251,7 +254,11 @@ scripts/config --file out/.config \
     -e KPERFEVENTS \
     -e MILLET \
     -e PERF_HUMANTASK \
-    -d LTO_CLANG \
+    -e LTO_CLANG \
+    -d CONFIG_THINLTO \
+    -d CONFIG_ARCH_SUPPORTS_THINLTO \
+    -d CONFIG_LTO_NONE \
+    -d CONFIG_CFI_CLANG \
     -d LOCALVERSION_AUTO \
     -e SF_BINDER \
     -e XIAOMI_MIUI \
@@ -266,7 +273,7 @@ scripts/config --file out/.config \
     -e MI_RECLAIM \
     -e RTMM \
 
-make $MAKE_ARGS -j$(nproc)
+make CFLAGS="-O3 -march=armv8-a -flto" LDFLAGS="-flto" $MAKE_ARGS -j8
 
 
 
