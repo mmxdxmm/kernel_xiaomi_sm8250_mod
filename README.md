@@ -24,7 +24,7 @@ cd ..
 
 export PATH=$PWD/proton-clang/proton-clang-20210522/bin:$PATH
 
-④在手机上编译就省去下载编译器并添加变量的步骤，直接用build_arm64.sh脚本
+④在手机上编译就省去下载编译器并添加变量的步骤，直接用build_arm64.sh脚本，原脚本是build(1).sh
 
 
 
