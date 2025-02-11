@@ -2,6 +2,7 @@
 sudo apt update && sudo apt upgrade -y && sudo apt install -y git libssl-dev gcc-arm-linux-gnueabi build-essential libncurses5-dev bzip2 make gcc g++ grep bc curl bison flex openssl lzop unzip zlib1g-dev file ca-certificates ccache wget texinfo xz-utils libelf-dev zip libgmp-dev libncurses-dev g++ gawk m4 libtinfo* cpio binutils-dev libelf-dev cmake ninja-build texinfo u-boot-tools python-is-python3 zstd clang llvm lld
 
 安装clang编译器
+
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
 sudo ./llvm.sh 20
