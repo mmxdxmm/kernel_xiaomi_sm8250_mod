@@ -1,8 +1,8 @@
-编译环境ubuntu
+①编译环境ubuntu
 
 sudo apt update && sudo apt upgrade -y && sudo apt install -y git libssl-dev gcc-arm-linux-gnueabi build-essential libncurses5-dev bzip2 make gcc g++ grep bc curl bison flex openssl lzop unzip zlib1g-dev file ca-certificates ccache wget texinfo xz-utils libelf-dev zip libgmp-dev libncurses-dev g++ gawk m4 libtinfo* cpio binutils-dev libelf-dev cmake ninja-build texinfo u-boot-tools python-is-python3 zstd clang llvm lld
 
-安装clang编译器
+②安装clang编译器
 
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
@@ -12,7 +12,7 @@ sudo ./llvm.sh 20
 
 bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
 
-自行下载binutils或别人打包好的编译器并添加进环境变量中，用来交叉编译，
+③自行下载binutils或别人打包好的编译器并添加进环境变量中，用来交叉编译，
 
 mkdir proton-clang
 cd proton-clang
@@ -24,7 +24,7 @@ cd ..
 
 export PATH=$PWD/proton-clang/proton-clang-20210522/bin:$PATH
 
-在手机上编译就省去下载编译器并添加变量的步骤，直接用build_arm64.sh脚本
+④在手机上编译就省去下载编译器并添加变量的步骤，直接用build_arm64.sh脚本
 
 
 
