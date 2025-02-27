@@ -13,9 +13,13 @@ bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
 ③自行下载binutils或别人打包好的编译器并添加进环境变量中，用来交叉编译，
 
 mkdir proton-clang
+
 cd proton-clang
+
 wget https://github.com/kdrag0n/proton-clang/archive/refs/tags/20210522.zip
+
 unzip 20210522.zip
+
 cd ..
 
 添加变量
