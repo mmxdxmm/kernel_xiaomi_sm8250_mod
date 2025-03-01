@@ -24,7 +24,7 @@ jobs:
 
       - name: Build Kernel
         run: |
-          bash N0Kernel_build.sh cmi ksu > out.txt
+          bash build.sh cmi > out.txt
           dd if=out/.config of=config.txt
 
       - name: Upload Artifacts
