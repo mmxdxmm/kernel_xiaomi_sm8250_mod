@@ -235,6 +235,8 @@ sed -i 's/\/\/39 01 00 00 00 00 05 51 07 FF 00 00/39 01 00 00 00 00 05 51 07 FF 
 sed -i 's/\/\/39 01 00 00 01 00 03 51 03 FF/39 01 00 00 01 00 03 51 03 FF/g' ${dts_source}/dsi-panel-j11-38-08-0a-fhd-cmd.dtsi
 sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${dts_source}/dsi-panel-j2-p2-1-38-0c-0a-dsc-cmd.dtsi
 
+#更新所有文件的时间戳为系统时间
+find . -exec touch {} +
 
 make CFLAGS="-O3 -march=aarch64 -flto -Wno-error" CXXFLAGS="-O3 -march=aarch64 -flto -Wno-error" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
