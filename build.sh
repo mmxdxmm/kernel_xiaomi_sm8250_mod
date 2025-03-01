@@ -4,8 +4,9 @@
 
 # Ensure the script exits on error
 set -e
-
+yes | tar -xvf electron-binutils-2.41.tar.xz
 TOOLCHAIN_PATH=/lib/llvm-20/bin
+BINUTILS_PATH=$PWD/electron-binutils-2.41/bin
 GIT_COMMIT_ID="mmxdxmm"
 
 TARGET_DEVICE=$1
@@ -30,7 +31,7 @@ if [ ! -d $TOOLCHAIN_PATH ]; then
 fi
 
 echo "TOOLCHAIN_PATH: [$TOOLCHAIN_PATH]"
-export PATH="$TOOLCHAIN_PATH:$PATH"
+export PATH="$BINUTILS_PATH:$TOOLCHAIN_PATH:$PATH"
 
 #if ! command -v aarch64-linux-gnu-ld >/dev/null 2>&1; then
 #    echo "[aarch64-linux-gnu-ld] does not exist, please check your environment."
@@ -98,7 +99,9 @@ if [ $KSU_ENABLE -eq 1 ]; then
     echo "KSU is enabled"
 #    yes | unzip susfs.zip
 #    curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
-    curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -
+#    yes | unzip KernelSU-Next_susfs.zip
+#    bash KernelSU-Next/kernel/setup.sh
+    curl -LSs "https://raw.githubusercontent.com/mmxdxmm/KernelSU-Next/next/kernel/setup.sh" | bash -
 else
     echo "KSU is disabled"
 fi
@@ -233,7 +236,7 @@ sed -i 's/\/\/39 01 00 00 01 00 03 51 03 FF/39 01 00 00 01 00 03 51 03 FF/g' ${d
 sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${dts_source}/dsi-panel-j2-p2-1-38-0c-0a-dsc-cmd.dtsi
 
 
-make CFLAGS="-O3 -march=aarch64 -flto" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+make CFLAGS="-O3 -march=aarch64 -flto -Wno-error" CXXFLAGS="-O3 -march=aarch64 -flto -Wno-error" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config -e KSU
@@ -275,7 +278,7 @@ scripts/config --file out/.config \
     -e MI_RECLAIM \
     -e RTMM \
 
-make CFLAGS="-O3 -march=aarch64 -flto" $MAKE_ARGS -j8
+make CFLAGS="-O3 -march=aarch64 -flto -Wno-error" CXXFLAGS="-O3 -march=aarch64 -flto -Wno-error" $MAKE_ARGS -j$(nproc)
 
 
 

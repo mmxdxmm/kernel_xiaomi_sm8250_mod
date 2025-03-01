@@ -4,10 +4,9 @@
 
 # Ensure the script exits on error
 set -e
-
-yes | tar -xvf binutils-2.40.tar.xz
+yes | tar -xvf electron-binutils-2.42.tar.xz
 TOOLCHAIN_PATH=/lib/llvm-20/bin
-BINUTILS_PATH=$PWD/binutils-2.40/bin
+BINUTILS_PATH=$PWD/electron-binutils-2.42/bin
 GIT_COMMIT_ID="mmxdxmm"
 
 TARGET_DEVICE=$1
@@ -98,15 +97,11 @@ echo "TARGET_DEVICE: $TARGET_DEVICE"
 
 if [ $KSU_ENABLE -eq 1 ]; then
     echo "KSU is enabled"
-    yes | unzip susfs.zip
+#    yes | unzip susfs.zip
 #    curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
 #    yes | unzip KernelSU-Next_susfs.zip
 #    bash KernelSU-Next/kernel/setup.sh
-    curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s v1.0.4
-    cp 10_enable_susfs_for_ksu.patch KernelSU-Next/
-    cd KernelSU-Next
-    patch -p1 < 10_enable_susfs_for_ksu.patch
-    cd ..
+    curl -LSs "https://raw.githubusercontent.com/mmxdxmm/KernelSU-Next/next/kernel/setup.sh" | bash -
 else
     echo "KSU is disabled"
 fi
@@ -240,8 +235,10 @@ sed -i 's/\/\/39 01 00 00 00 00 05 51 07 FF 00 00/39 01 00 00 00 00 05 51 07 FF 
 sed -i 's/\/\/39 01 00 00 01 00 03 51 03 FF/39 01 00 00 01 00 03 51 03 FF/g' ${dts_source}/dsi-panel-j11-38-08-0a-fhd-cmd.dtsi
 sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${dts_source}/dsi-panel-j2-p2-1-38-0c-0a-dsc-cmd.dtsi
 
+#更新所有文件的时间戳为系统时间
+find . -exec touch {} +
 
-make CFLAGS="-O3 -march=aarch64 -flto" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+make CFLAGS="-O3 -march=aarch64 -flto -Wno-error" CXXFLAGS="-O3 -march=aarch64 -flto -Wno-error" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config -e KSU
@@ -283,7 +280,7 @@ scripts/config --file out/.config \
     -e MI_RECLAIM \
     -e RTMM \
 
-make CFLAGS="-O3 -march=aarch64 -flto" $MAKE_ARGS -j$(nproc)
+make CFLAGS="-O3 -march=aarch64 -flto -Wno-error" CXXFLAGS="-O3 -march=aarch64 -flto -Wno-error" $MAKE_ARGS -j$(nproc)
 
 
 
