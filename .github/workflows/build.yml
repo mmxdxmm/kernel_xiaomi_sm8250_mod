@@ -24,7 +24,7 @@ jobs:
 
       - name: Build Kernel
         run: |
-          bash build.sh cmi > out.txt
+          bash build_thinlto.sh cmi > out.txt
           dd if=out/.config of=config.txt
 
       - name: Upload Artifacts
