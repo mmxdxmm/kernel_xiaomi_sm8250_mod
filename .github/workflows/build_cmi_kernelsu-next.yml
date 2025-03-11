@@ -33,5 +33,6 @@ jobs:
           name: build-output
           path: |
             out.txt
-            *.zip
+            Kernel_MIUI_*
+            Kernel_AOSP_*
             config.txt
