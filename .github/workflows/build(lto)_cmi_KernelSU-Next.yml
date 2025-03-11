@@ -1,4 +1,4 @@
-name: Build Kernel cmi KernelSU-Next
+name: Build(LTO) Kernel cmi KernelSU-Next
 
 on:
   workflow_dispatch:  # 仅允许手动触发工作流
