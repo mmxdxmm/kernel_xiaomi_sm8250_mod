@@ -4,12 +4,9 @@
 
 # Ensure the script exits on error
 set -e
-
-wget https://github.com/kdrag0n/proton-clang/archive/refs/tags/20210522.zip
-yes | unzip 20210522.zip
-#yes | tar -xvf electron-binutils-2.41.tar.xz
+yes | tar -xvf electron-binutils-2.41.tar.xz
 TOOLCHAIN_PATH=/lib/llvm-20/bin
-BINUTILS_PATH=$PWD/proton-clang-20210522/bin
+BINUTILS_PATH=$PWD/electron-binutils-2.41/bin
 GIT_COMMIT_ID="mmxdxmm"
 
 TARGET_DEVICE=$1
