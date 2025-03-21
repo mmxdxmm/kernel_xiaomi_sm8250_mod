@@ -4,7 +4,7 @@ sudo apt update && sudo apt upgrade -y && sudo apt install -y git libssl-dev gcc
 
 ②安装clang编译器
 
-wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 20
+wget https://apt.llvm.org/llvm.sh -O llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 20
 
 或
 
