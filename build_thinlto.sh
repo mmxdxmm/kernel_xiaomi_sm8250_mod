@@ -239,7 +239,10 @@ find . -exec touch {} +
 make CFLAGS="-O3 -march=aarch64 -flto -Wno-error" CXXFLAGS="-O3 -march=aarch64 -flto -Wno-error" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
-    scripts/config --file out/.config -e KSU
+    scripts/config --file out/.config \
+    -e KSU \
+    -e KSU_SUSFS \
+    -e CONFIG_KSU_SUSFS_SUS_SU
 else
     scripts/config --file out/.config -d KSU
 fi
