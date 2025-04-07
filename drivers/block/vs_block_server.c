@@ -29,7 +29,7 @@
 #include <vservices/protocol/block/client.h>
 #include <vservices/service.h>
 #include <vservices/wait.h>
-#include "../drivers/md/bcache/util.c"
+#include "../drivers/md/bcache/util.h"
 
 #define VS_BLOCK_BLKDEV_DEFAULT_MODE FMODE_READ
 /* Must match Linux bio sector_size (512 bytes) */
