@@ -244,6 +244,7 @@ if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
     -e KSU \
     -e KSU_SUSFS \
+    -e KSU_SUSFS_SUS_OVERLAYFS \
     -e CONFIG_KSU_SUSFS_SUS_SU
 else
     scripts/config --file out/.config -d KSU
