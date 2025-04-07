@@ -99,9 +99,7 @@ if [ $KSU_ENABLE -eq 1 ]; then
     echo "KSU is enabled"
 #    yes | unzip susfs.zip
     curl -LSs "https://raw.githubusercontent.com/mmxdxmm/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
-#    yes | unzip KernelSU-Next_susfs.zip
-#    bash KernelSU-Next/kernel/setup.sh
-#    curl -LSs "https://raw.githubusercontent.com/mmxdxmm/KernelSU-Next/next/kernel/setup.sh" | bash -
+#    curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -
 else
     echo "KSU is disabled"
 fi
@@ -265,9 +263,9 @@ scripts/config --file out/.config \
     -e MILLET \
     -e PERF_HUMANTASK \
     -e LTO_CLANG \
-    -d CONFIG_THINLTO \
-    -d CONFIG_ARCH_SUPPORTS_THINLTO \
-    -d CONFIG_LTO_NONE \
+    -e CONFIG_THINLTO \
+    -e CONFIG_ARCH_SUPPORTS_THINLTO \
+    -e CONFIG_LTO_NONE \
     -d CONFIG_CFI_CLANG \
     -d LOCALVERSION_AUTO \
     -e SF_BINDER \

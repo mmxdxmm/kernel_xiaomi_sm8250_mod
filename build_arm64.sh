@@ -4,9 +4,9 @@
 
 # Ensure the script exits on error
 set -e
-yes | tar -xvf electron-binutils-2.41.tar.xz
+yes | tar -xvf electron-binutils-2.42.tar.xz
 TOOLCHAIN_PATH=/lib/llvm-20/bin
-BINUTILS_PATH=$PWD/electron-binutils-2.41/bin
+BINUTILS_PATH=$PWD/electron-binutils-2.42/bin
 GIT_COMMIT_ID="mmxdxmm"
 
 TARGET_DEVICE=$1
@@ -265,9 +265,9 @@ scripts/config --file out/.config \
     -e MILLET \
     -e PERF_HUMANTASK \
     -e LTO_CLANG \
-    -d CONFIG_THINLTO \
-    -d CONFIG_ARCH_SUPPORTS_THINLTO \
-    -d CONFIG_LTO_NONE \
+    -e CONFIG_THINLTO \
+    -e CONFIG_ARCH_SUPPORTS_THINLTO \
+    -e CONFIG_LTO_NONE \
     -d CONFIG_CFI_CLANG \
     -d LOCALVERSION_AUTO \
     -e SF_BINDER \

@@ -1,30 +1,30 @@
 #!/bin/bash
 set -e
 
-bash build.sh psyche
-bash build.sh thyme
-bash build.sh umi
-bash build.sh munch
-bash build.sh lmi
-bash build.sh cmi
-bash build.sh cas
-bash build.sh apollo
-bash build.sh alioth
-bash build.sh elish
-bash build.sh enuma
-bash build.sh dagu
-bash build.sh pipa
+bash build_thinlto.sh psyche
+bash build_thinlto.sh thyme
+bash build_thinlto.sh umi
+bash build_thinlto.sh munch
+bash build_thinlto.sh lmi
+bash build_thinlto.sh cmi
+bash build_thinlto.sh cas
+bash build_thinlto.sh apollo
+bash build_thinlto.sh alioth
+bash build_thinlto.sh elish
+bash build_thinlto.sh enuma
+bash build_thinlto.sh dagu
+bash build_thinlto.sh pipa
 
-bash build.sh psyche ksu
-bash build.sh thyme ksu
-bash build.sh umi ksu
-bash build.sh munch ksu
-bash build.sh lmi ksu
-bash build.sh cmi ksu
-bash build.sh cas ksu
-bash build.sh apollo ksu
-bash build.sh alioth ksu
-bash build.sh elish ksu
-bash build.sh enuma ksu
-bash build.sh dagu ksu
-bash build.sh pipa ksu
+bash build_thinlto.sh psyche ksu
+bash build_thinlto.sh thyme ksu
+bash build_thinlto.sh umi ksu
+bash build_thinlto.sh munch ksu
+bash build_thinlto.sh lmi ksu
+bash build_thinlto.sh cmi ksu
+bash build_thinlto.sh cas ksu
+bash build_thinlto.sh apollo ksu
+bash build_thinlto.sh alioth ksu
+bash build_thinlto.sh elish ksu
+bash build_thinlto.sh enuma ksu
+bash build_thinlto.sh dagu ksu
+bash build_thinlto.sh pipa ksu
