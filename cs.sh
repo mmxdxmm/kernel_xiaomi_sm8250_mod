@@ -5,21 +5,10 @@
 # Ensure the script exits on error
 set -e
 
-if [ -f "android-ndk-r28.zip" ]; then
-    echo "文件已存在，正在解压..."
-    yes | unzip android-ndk-r28.zip
-else
-    echo "文件不存在，正在下载..."
-    wget -O android-ndk-r28.zip "https://dl.google.com/android/repository/android-ndk-r28-linux.zip"
-    if [ $? -eq 0 ]; then
-        echo "下载完成，正在解压..."
-        yes | unzip android-ndk-r28.zip
-    else
-        echo "下载失败，请检查网络或链接是否正确。"
-    fi
-fi
-
-TOOLCHAIN_PATH=$PWD/android-ndk-r28/toolchains/llvm/prebuilt/linux-x86_64/bin
+wget -O binutils-android-4.9.zip https://github.com/mmxdxmm/binutils-android-4.9/releases/download/2021/binutils-android-4.9.zip
+yes | unzip binutils-android-4.9.zip
+TOOLCHAIN_PATH=/lib/llvm-20/bin
+BINUTILS_PATH=$PWD/binutils-android-4.9/bin
 GIT_COMMIT_ID="mmxdxmm"
 
 TARGET_DEVICE=$1
@@ -44,15 +33,15 @@ if [ ! -d $TOOLCHAIN_PATH ]; then
 fi
 
 echo "TOOLCHAIN_PATH: [$TOOLCHAIN_PATH]"
-export PATH="$TOOLCHAIN_PATH:$PATH"
+export PATH="$BINUTILS_PATH:$TOOLCHAIN_PATH:$PATH"
 
-#if ! command -v aarch64-linux-gnu-ld >/dev/null 2>&1; then
-#    echo "[aarch64-linux-gnu-ld] does not exist, please check your environment."
+#if ! command -v aarch64-linux-android-ld >/dev/null 2>&1; then
+#    echo "[aarch64-linux-android-ld] does not exist, please check your environment."
 #    exit 1
 #fi
 
-#if ! command -v arm-linux-gnueabi-ld >/dev/null 2>&1; then
-#    echo "[arm-linux-gnueabi-ld] does not exist, please check your environment."
+#if ! command -v arm-linux-androideabi-ld >/dev/null 2>&1; then
+#    echo "[arm-linux-androideabi-ld] does not exist, please check your environment."
 #    exit 1
 #fi
 
@@ -68,6 +57,9 @@ export CC="ccache gcc"
 export CXX="ccache g++"
 export PATH="/usr/lib/ccache:$PATH"
 echo "CCACHE_DIR: [$CCACHE_DIR]"
+
+
+MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LLVM=1 CROSS_COMPILE=aarch64-linux-android- CROSS_COMPILE_ARM32=arm-linux-androideabi- CROSS_COMPILE_COMPAT=arm-linux-androideabi- CLANG_TRIPLE=aarch64-linux-android-"
 
 
 if [ "$1" == "j1" ]; then
@@ -248,16 +240,7 @@ sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${d
 #更新所有文件的时间戳为系统时间
 find . -exec touch {} +
 
-NDK=./android-ndk-r28  # 设置NDK路径[6](@ref)
-
-MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out"
-
-CFLAGS="-O3 -target aarch64-linux-android33 \
-        --sysroot=$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot \
-        -march=armv8.2-a+crypto+dotprod -mcpu=cortex-a77 -flto -Wno-error"
-
-make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" $MAKE_ARGS -j$(nproc)
- ${TARGET_DEVICE}_defconfig
+make CFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" CXXFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
@@ -303,7 +286,7 @@ scripts/config --file out/.config \
     -e MI_RECLAIM \
     -e RTMM \
 
-make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" $MAKE_ARGS -j$(nproc)
+make CFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" CXXFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" $MAKE_ARGS -j$(nproc)
 
 
 
