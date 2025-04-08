@@ -46,13 +46,13 @@ fi
 echo "TOOLCHAIN_PATH: [$TOOLCHAIN_PATH]"
 export PATH="$TOOLCHAIN_PATH:$PATH"
 
-#if ! command -v aarch64-linux-android33ld >/dev/null 2>&1; then
-#    echo "[aarch64-linux-android33ld] does not exist, please check your environment."
+#if ! command -v aarch64-linux-gnu-ld >/dev/null 2>&1; then
+#    echo "[aarch64-linux-gnu-ld] does not exist, please check your environment."
 #    exit 1
 #fi
 
-#if ! command -v armv7a-linux-androideabi33ld >/dev/null 2>&1; then
-#    echo "[armv7a-linux-androideabi33ld] does not exist, please check your environment."
+#if ! command -v arm-linux-gnueabi-ld >/dev/null 2>&1; then
+#    echo "[arm-linux-gnueabi-ld] does not exist, please check your environment."
 #    exit 1
 #fi
 
@@ -68,9 +68,6 @@ export CC="ccache gcc"
 export CXX="ccache g++"
 export PATH="/usr/lib/ccache:$PATH"
 echo "CCACHE_DIR: [$CCACHE_DIR]"
-
-
-MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LLVM=1 CROSS_COMPILE=aarch64-linux-android33 CROSS_COMPILE_ARM32=armv7a-linux-androideabi33 CROSS_COMPILE_COMPAT=armv7a-linux-androideabi33 CLANG_TRIPLE=aarch64-linux-android33"
 
 
 if [ "$1" == "j1" ]; then
@@ -251,7 +248,18 @@ sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${d
 #更新所有文件的时间戳为系统时间
 find . -exec touch {} +
 
-make CFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" CXXFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+NDK=./android-ndk-r28  # 设置NDK路径[6](@ref)
+
+MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out \
+           CROSS_COMPILE=aarch64-linux-android33- \
+           CLANG_TRIPLE=aarch64-linux-android33-"
+
+CFLAGS="-O3 -target aarch64-linux-android33 \
+        --sysroot=$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot \
+        -march=armv8.2-a+crypto+dotprod -mcpu=cortex-a77 -flto -Wno-error"
+
+make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" $MAKE_ARGS -j$(nproc)
+ ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
@@ -297,7 +305,7 @@ scripts/config --file out/.config \
     -e MI_RECLAIM \
     -e RTMM \
 
-make CFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" CXXFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" $MAKE_ARGS -j$(nproc)
+make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" $MAKE_ARGS -j$(nproc)
 
 
 
