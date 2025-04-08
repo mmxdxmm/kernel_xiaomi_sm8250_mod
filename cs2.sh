@@ -250,7 +250,9 @@ find . -exec touch {} +
 
 NDK=./android-ndk-r28  # 设置NDK路径[6](@ref)
 
-MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out"
+MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out \
+           CROSS_COMPILE=aarch64-linux-android33-clang \
+           CLANG_TRIPLE=aarch64-linux-android33-clang"
 
 CFLAGS="-O3 -target aarch64-linux-android33 \
         --sysroot=$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot \
