@@ -1,3 +1,14 @@
+    配置Debian/Ubuntu运行环境
+    ```
+    sudo apt update && sudo apt upgrade -y && sudo apt install -y git libssl-dev gcc-arm-linux-gnueabi build-essential libncurses5-dev bzip2 make gcc g++ grep bc curl bison flex openssl lzop unzip zlib1g-dev file ca-certificates ccache wget texinfo xz-utils libelf-dev zip libgmp-dev libncurses-dev gawk m4 libtinfo* cpio binutils-dev cmake ninja-build u-boot-tools python-is-python3 zstd clang llvm lld
+    ```
+    
+    配置Termux运行环境
+    ```
+    pkg update && pkg upgrade -y && pkg install sudo build-essential ccache git libblkid bzip2 openssl make clang llvm lld grep bc curl bison flex lzop zip unzip file ca-certificates wget texinfo xz-utils gawk m4 cpio libelf cmake python zstd ncurses ninja zlib libgmp binutils -y
+    ```
+
+
 # About this repo
 ## English
 This repo (`android14-lineage22-mod` branch) is based on [Lineage OS 22.1 xiaomi sm8250 kernel source](https://github.com/LineageOS/android_kernel_xiaomi_sm8250).
