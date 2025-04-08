@@ -46,13 +46,13 @@ fi
 echo "TOOLCHAIN_PATH: [$TOOLCHAIN_PATH]"
 export PATH="$TOOLCHAIN_PATH:$PATH"
 
-#if ! command -v aarch64-linux-gnu-ld >/dev/null 2>&1; then
-#    echo "[aarch64-linux-gnu-ld] does not exist, please check your environment."
+#if ! command -v aarch64-linux-android33ld >/dev/null 2>&1; then
+#    echo "[aarch64-linux-android33ld] does not exist, please check your environment."
 #    exit 1
 #fi
 
-#if ! command -v arm-linux-gnueabi-ld >/dev/null 2>&1; then
-#    echo "[arm-linux-gnueabi-ld] does not exist, please check your environment."
+#if ! command -v armv7a-linux-androideabi33ld >/dev/null 2>&1; then
+#    echo "[armv7a-linux-androideabi33ld] does not exist, please check your environment."
 #    exit 1
 #fi
 
@@ -70,7 +70,7 @@ export PATH="/usr/lib/ccache:$PATH"
 echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 
-MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LLVM=1"
+MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LLVM=1 CROSS_COMPILE=aarch64-linux-android33 CROSS_COMPILE_ARM32=armv7a-linux-androideabi33 CROSS_COMPILE_COMPAT=armv7a-linux-androideabi33 CLANG_TRIPLE=aarch64-linux-android33"
 
 
 if [ "$1" == "j1" ]; then
