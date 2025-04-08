@@ -19,7 +19,7 @@ else
     fi
 fi
 yes | unzip android-ndk-r28.zip
-TOOLCHAIN_PATH=/android-ndk-r28/toolchains/llvm/prebuilt/linux-x86_64/bin
+TOOLCHAIN_PATH=$PWD/android-ndk-r28/toolchains/llvm/prebuilt/linux-x86_64/bin
 GIT_COMMIT_ID="mmxdxmm"
 
 TARGET_DEVICE=$1
@@ -251,8 +251,10 @@ find . -exec touch {} +
 NDK=./android-ndk-r28  # 设置NDK路径[6](@ref)
 
 MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out \
-           CROSS_COMPILE=aarch64-linux-android33-clang \
-           CLANG_TRIPLE=aarch64-linux-android33-clang"
+           CC=aarch64-linux-android33-clang \
+           HOSTCC=aarch64-linux-android33-clang \
+           CXX=aarch64-linux-android33-clang++ \
+           HOSTXX=aarch64-linux-android33-clang++"
 
 CFLAGS="-O3 -target aarch64-linux-android33 \
         --sysroot=$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot \
