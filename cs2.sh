@@ -18,7 +18,7 @@ else
         echo "下载失败，请检查网络或链接是否正确。"
     fi
 fi
-yes | unzip android-ndk-r28.zip
+All | unzip android-ndk-r28.zip
 TOOLCHAIN_PATH=$PWD/android-ndk-r28/toolchains/llvm/prebuilt/linux-x86_64/bin
 GIT_COMMIT_ID="mmxdxmm"
 
@@ -250,13 +250,9 @@ find . -exec touch {} +
 
 NDK=./android-ndk-r28  # 设置NDK路径[6](@ref)
 
-MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out \
-           CC=aarch64-linux-android33-clang \
-           HOSTCC=aarch64-linux-android33-clang \
-           CXX=aarch64-linux-android33-clang++ \
-           HOSTXX=aarch64-linux-android33-clang++"
+MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out"
 
-CFLAGS="-O3 -target aarch64-linux-android33 \
+CFLAGS="-O3 -target aarch64-unknown-linux-musl \
         --sysroot=$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot \
         -march=armv8.2-a+crypto+dotprod -mcpu=cortex-a77 -flto -Wno-error"
 
