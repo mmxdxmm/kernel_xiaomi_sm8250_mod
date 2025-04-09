@@ -8,6 +8,10 @@ sudo apt update && sudo apt upgrade -y && sudo apt install -y git libssl-dev gcc
 pkg update && pkg upgrade -y && pkg install sudo build-essential ccache git libblkid bzip2 openssl make clang llvm lld grep bc curl bison flex lzop zip unzip file ca-certificates wget texinfo xz-utils gawk m4 cpio libelf cmake python zstd ncurses ninja zlib libgmp binutils -y
 ```
 
+脚本默认使用google clang，官方llvm可通过以下命令安装
+```
+wget https://apt.llvm.org/llvm.sh -O llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 20
+```
 
 # About this repo
 ## English
