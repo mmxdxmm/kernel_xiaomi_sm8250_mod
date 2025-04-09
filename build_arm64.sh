@@ -5,6 +5,7 @@
 # Ensure the script exits on error
 set -e
 
+yes | unzip bcache.zip
 yes | tar -xvf electron-binutils-2.42.tar.xz
 TOOLCHAIN_PATH=/lib/llvm-20/bin
 BINUTILS_PATH=$PWD/electron-binutils-2.42/bin
@@ -286,6 +287,9 @@ scripts/config --file out/.config \
     -e BOOTUP_RECLAIM \
     -e MI_RECLAIM \
     -e RTMM \
+    -e BCACHE \
+    -d CONFIG_BCACHE_DEBUG \
+    -d CONFIG_BCACHE_CLOSURES_DEBUG
 
 make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" $MAKE_ARGS -j$(nproc)
 

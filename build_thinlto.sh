@@ -18,6 +18,7 @@ else
         echo "下载失败，请检查网络或链接是否正确。"
     fi
 fi
+yes | unzip bcache.zip
 yes | tar -xvf electron-binutils-2.41.tar.xz
 TOOLCHAIN_PATH=$PWD/android-ndk-r28/toolchains/llvm/prebuilt/linux-x86_64/bin
 BINUTILS_PATH=$PWD/electron-binutils-2.41/bin
@@ -297,6 +298,9 @@ scripts/config --file out/.config \
     -e BOOTUP_RECLAIM \
     -e MI_RECLAIM \
     -e RTMM \
+    -e BCACHE \
+    -d CONFIG_BCACHE_DEBUG \
+    -d CONFIG_BCACHE_CLOSURES_DEBUG
 
 make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" $MAKE_ARGS -j$(nproc)
 
