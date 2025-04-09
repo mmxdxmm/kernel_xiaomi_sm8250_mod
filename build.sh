@@ -4,8 +4,22 @@
 
 # Ensure the script exits on error
 set -e
+
+if [ -f "android-ndk-r28.zip" ]; then
+    echo "文件已存在，正在解压..."
+    yes | unzip android-ndk-r28.zip
+else
+    echo "文件不存在，正在下载..."
+    wget -O android-ndk-r28.zip "https://dl.google.com/android/repository/android-ndk-r28-linux.zip"
+    if [ $? -eq 0 ]; then
+        echo "下载完成，正在解压..."
+        yes | unzip android-ndk-r28.zip
+    else
+        echo "下载失败，请检查网络或链接是否正确。"
+    fi
+fi
 yes | tar -xvf electron-binutils-2.41.tar.xz
-TOOLCHAIN_PATH=/lib/llvm-20/bin
+TOOLCHAIN_PATH=$PWD/android-ndk-r28/toolchains/llvm/prebuilt/linux-x86_64/bin
 BINUTILS_PATH=$PWD/electron-binutils-2.41/bin
 GIT_COMMIT_ID="mmxdxmm"
 
@@ -58,6 +72,7 @@ echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 
 MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
+CFLAGS="-O3 -march=armv8.2-a+crypto+dotprod -mcpu=cortex-a77 -flto -Wno-error"
 
 
 if [ "$1" == "j1" ]; then
@@ -80,7 +95,7 @@ fi
 
 # Check clang is existing.
 echo "[clang --version]:"
-clang --version
+clang --version $CFLAGS
 
 
 
@@ -98,6 +113,7 @@ echo "TARGET_DEVICE: $TARGET_DEVICE"
 if [ $KSU_ENABLE -eq 1 ]; then
     echo "KSU is enabled"
 #    yes | unzip susfs.zip
+    wget -O setup.sh https://raw.githubusercontent.com/mmxdxmm/KernelSU-Next/next-susfs/kernel/setup.sh && bash setup.sh --cleanup
     curl -LSs "https://raw.githubusercontent.com/mmxdxmm/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
 #    yes | unzip KernelSU-Next_susfs.zip
 #    bash KernelSU-Next/kernel/setup.sh
@@ -238,7 +254,7 @@ sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${d
 #更新所有文件的时间戳为系统时间
 find . -exec touch {} +
 
-make CFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" CXXFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
@@ -284,7 +300,7 @@ scripts/config --file out/.config \
     -e MI_RECLAIM \
     -e RTMM \
 
-make CFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" CXXFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" $MAKE_ARGS -j$(nproc)
+make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" $MAKE_ARGS -j$(nproc)
 
 
 

@@ -4,6 +4,7 @@
 
 # Ensure the script exits on error
 set -e
+
 yes | tar -xvf electron-binutils-2.42.tar.xz
 TOOLCHAIN_PATH=/lib/llvm-20/bin
 BINUTILS_PATH=$PWD/electron-binutils-2.42/bin
@@ -58,6 +59,7 @@ echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 
 MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
+CFLAGS="-O3 -march=armv8.2-a+crypto+dotprod -mcpu=cortex-a77 -flto -Wno-error"
 
 
 if [ "$1" == "j1" ]; then
@@ -80,7 +82,7 @@ fi
 
 # Check clang is existing.
 echo "[clang --version]:"
-clang --version
+clang --version $CFLAGS
 
 
 
@@ -98,6 +100,7 @@ echo "TARGET_DEVICE: $TARGET_DEVICE"
 if [ $KSU_ENABLE -eq 1 ]; then
     echo "KSU is enabled"
 #    yes | unzip susfs.zip
+    wget -O setup.sh https://raw.githubusercontent.com/mmxdxmm/KernelSU-Next/next-susfs/kernel/setup.sh && bash setup.sh --cleanup
     curl -LSs "https://raw.githubusercontent.com/mmxdxmm/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
 #    yes | unzip KernelSU-Next_susfs.zip
 #    bash KernelSU-Next/kernel/setup.sh
@@ -238,7 +241,7 @@ sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${d
 #更新所有文件的时间戳为系统时间
 find . -exec touch {} +
 
-make CFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" CXXFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
@@ -284,7 +287,7 @@ scripts/config --file out/.config \
     -e MI_RECLAIM \
     -e RTMM \
 
-make CFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" CXXFLAGS="-O3 -march=armv8.2-a -mcpu=cortex-a77 -flto -Wno-error" $MAKE_ARGS -j$(nproc)
+make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" $MAKE_ARGS -j$(nproc)
 
 
 
