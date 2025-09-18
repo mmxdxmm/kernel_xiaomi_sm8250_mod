@@ -16,7 +16,6 @@ else
     fi
 fi
 
-yes | unzip Makefile.zip
 #yes | tar -xvf electron-binutils-2.41.tar.xz
 TOOLCHAIN_PATH=$PWD/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/bin
 #BINUTILS_PATH=$PWD/electron-binutils-2.41/bin
