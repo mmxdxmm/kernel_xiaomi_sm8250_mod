@@ -293,7 +293,8 @@ scripts/config --file out/.config \
     -e BOOTUP_RECLAIM \
     -e MI_RECLAIM \
     -e RTMM \
-    -e CONFIG_LD_DEAD_CODE_DATA_ELIMINATION
+    -e CONFIG_LD_DEAD_CODE_DATA_ELIMINATION \
+    -d CONFIG_MODULES
 
 make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" $MAKE_ARGS -j$(nproc)
 
