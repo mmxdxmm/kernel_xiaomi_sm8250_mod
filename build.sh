@@ -1,12 +1,26 @@
 #!/bin/bash
 
-# Some logics of this script are copied from [scripts/build_kernel]. Thanks to UtsavBalar1231.
-
-# Ensure the script exits on error
 set -e
 
-TOOLCHAIN_PATH=$HOME/proton-clang/proton-clang-20210522/bin
-GIT_COMMIT_ID=$(git rev-parse --short=8 HEAD)
+if [ -f "android-ndk-r28c.zip" ]; then
+    echo "文件已存在，正在解压..."
+    yes | unzip android-ndk-r28c.zip
+else
+    echo "文件不存在，正在下载..."
+    wget -nv -O android-ndk-r28c.zip "https://dl.google.com/android/repository/android-ndk-r28c-linux.zip"
+    if [ $? -eq 0 ]; then
+        echo "下载完成，正在解压..."
+        yes | unzip android-ndk-r28c.zip
+    else
+        echo "下载失败，请检查网络或链接是否正确。"
+    fi
+fi
+
+#yes | tar -xvf electron-binutils-2.41.tar.xz
+TOOLCHAIN_PATH=$PWD/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/bin
+#BINUTILS_PATH=$PWD/electron-binutils-2.41/bin
+GIT_COMMIT_ID="mmxdxmm"
+
 TARGET_DEVICE=$1
 
 if [ -z "$1" ]; then
@@ -31,31 +45,18 @@ fi
 echo "TOOLCHAIN_PATH: [$TOOLCHAIN_PATH]"
 export PATH="$TOOLCHAIN_PATH:$PATH"
 
-if ! command -v aarch64-linux-gnu-ld >/dev/null 2>&1; then
-    echo "[aarch64-linux-gnu-ld] does not exist, please check your environment."
-    exit 1
-fi
-
-if ! command -v arm-linux-gnueabi-ld >/dev/null 2>&1; then
-    echo "[arm-linux-gnueabi-ld] does not exist, please check your environment."
-    exit 1
-fi
-
-if ! command -v clang >/dev/null 2>&1; then
-    echo "[clang] does not exist, please check your environment."
-    exit 1
-fi
-
 
 # Enable ccache for speed up compiling 
 export CCACHE_DIR="$HOME/.cache/ccache_mikernel" 
-export CC="ccache gcc"
-export CXX="ccache g++"
+export CC="ccache clang"
+export CXX="ccache clang++"
 export PATH="/usr/lib/ccache:$PATH"
 echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 
-MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
+MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
+CFLAGS="--target=aarch64-linux-android33 -I$PWD/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto -Wno-error"
+LDFLAGS="-L$PWD/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/33"
 
 
 if [ "$1" == "j1" ]; then
@@ -78,14 +79,14 @@ fi
 
 # Check clang is existing.
 echo "[clang --version]:"
-clang --version
+clang --version $CFLAGS
 
 
 
-KSU_ZIP_STR=NoKernelSU
+KSU_ZIP_STR=NoKSU
 if [ "$2" == "ksu" ]; then
     KSU_ENABLE=1
-    KSU_ZIP_STR=SukiSU-SUSFS
+    KSU_ZIP_STR=SukiSU
 else
     KSU_ENABLE=0
 fi
@@ -95,7 +96,8 @@ echo "TARGET_DEVICE: $TARGET_DEVICE"
 
 if [ $KSU_ENABLE -eq 1 ]; then
     echo "KSU is enabled"
-    curl -LSs "https://github.com/liyafe1997/SukiSU-Ultra/raw/4ff14cf0051d04209c4abd5027d99d8e7780ef5b/kernel/setup.sh" | bash -s f4863b20cc8dc0f8cc67418980f022e43014b598
+    wget -O setup.sh https://raw.githubusercontent.com/mmxdxmm/SukiSU-Ultra/susfs-1.5.7/kernel/setup.sh && bash setup.sh --cleanup
+    curl -LSs "https://raw.githubusercontent.com/mmxdxmm/SukiSU-Ultra/susfs-1.5.7/kernel/setup.sh" | bash -s susfs-1.5.7
 else
     echo "KSU is disabled"
 fi
@@ -106,87 +108,59 @@ echo "Cleaning..."
 rm -rf out/
 rm -rf anykernel/
 
-echo "Clone AnyKernel3 for packing kernel (repo: https://github.com/liyafe1997/AnyKernel3)"
-git clone https://github.com/liyafe1997/AnyKernel3 -b kona --single-branch --depth=1 anykernel
+echo "Clone AnyKernel3 for packing kernel (repo: https://github.com/mmxdxmm/AnyKernel3)"
+git clone https://github.com/mmxdxmm/AnyKernel3 -b kona --single-branch --depth=1 anykernel
 
 # Add date to local version
 local_version_str="-perf"
 local_version_date_str="-$(date +%Y%m%d)-${GIT_COMMIT_ID}-perf"
 
+sed -i "s/${local_version_date_str}/${local_version_str}/g" arch/arm64/configs/${TARGET_DEVICE}_defconfig
 sed -i "s/${local_version_str}/${local_version_date_str}/g" arch/arm64/configs/${TARGET_DEVICE}_defconfig
 
 # ------------- Building for AOSP -------------
 
-echo "Building for AOSP......"
-make $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+#echo "Building for AOSP......"
+#make $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
-if [ $KSU_ENABLE -eq 1 ]; then
-    scripts/config --file out/.config \
-    -e KSU \
-    -e KSU_MANUAL_HOOK \
-    -e KSU_SUSFS_HAS_MAGIC_MOUNT \
-    -d KSU_SUSFS_SUS_PATH \
-    -e KSU_SUSFS_SUS_MOUNT \
-    -e KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT \
-    -e KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT \
-    -e KSU_SUSFS_SUS_KSTAT \
-    -d KSU_SUSFS_SUS_OVERLAYFS \
-    -e KSU_SUSFS_TRY_UMOUNT \
-    -e KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT \
-    -e KSU_SUSFS_SPOOF_UNAME \
-    -e KSU_SUSFS_ENABLE_LOG \
-    -e KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS \
-    -e KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG \
-    -d KSU_SUSFS_OPEN_REDIRECT \
-    -d KSU_SUSFS_SUS_SU \
-    -e KPM
-else
-    scripts/config --file out/.config -d KSU
-fi
+#if [ $KSU_ENABLE -eq 1 ]; then
+#    scripts/config --file out/.config -e KSU
+#else
+#    scripts/config --file out/.config -d KSU
+#fi
 
-make $MAKE_ARGS -j$(nproc)
+#make $MAKE_ARGS -j$(nproc)
 
 
-if [ -f "out/arch/arm64/boot/Image" ]; then
-    echo "The file [out/arch/arm64/boot/Image] exists. AOSP Build successfully."
-else
-    echo "The file [out/arch/arm64/boot/Image] does not exist. Seems AOSP build failed."
-    exit 1
-fi
+#if [ -f "out/arch/arm64/boot/Image" ]; then
+#    echo "The file [out/arch/arm64/boot/Image] exists. AOSP Build successfully."
+#else
+#    echo "The file [out/arch/arm64/boot/Image] does not exist. Seems AOSP build failed."
+#    exit 1
+#fi
 
-echo "Generating [out/arch/arm64/boot/dtb]......"
-find out/arch/arm64/boot/dts -name '*.dtb' -exec cat {} + >out/arch/arm64/boot/dtb
+#echo "Generating [out/arch/arm64/boot/dtb]......"
+#find out/arch/arm64/boot/dts -name '*.dtb' -exec cat {} + >out/arch/arm64/boot/dtb
 
-rm -rf anykernel/kernels/
+#rm -rf anykernel/kernels/
 
-mkdir -p anykernel/kernels/
+#mkdir -p anykernel/kernels/
 
-# Patch for SukiSU KPM support. 
-if [ $KSU_ENABLE -eq 1 ]; then
-    cd out/arch/arm64/boot/
-    wget https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.12.0/patch_linux
-    chmod +x patch_linux
-    ./patch_linux
-    rm Image
-    mv oImage Image
-    cd -
-fi
+#cp out/arch/arm64/boot/Image anykernel/kernels/
+#cp out/arch/arm64/boot/dtb anykernel/kernels/
 
-cp out/arch/arm64/boot/Image anykernel/kernels/
-cp out/arch/arm64/boot/dtb anykernel/kernels/
+#cd anykernel 
 
-cd anykernel 
+#ZIP_FILENAME=Kernel_AOSP_${TARGET_DEVICE}_${KSU_ZIP_STR}_$(date +'%Y%m%d_%H%M%S')_anykernel3_${GIT_COMMIT_ID}.zip
 
-ZIP_FILENAME=Kernel_AOSP_${TARGET_DEVICE}_${KSU_ZIP_STR}_$(date +'%Y%m%d_%H%M%S')_anykernel3_${GIT_COMMIT_ID}.zip
+#zip -r9 $ZIP_FILENAME ./* -x .git .gitignore out/ ./*.zip
 
-zip -r9 $ZIP_FILENAME ./* -x .git .gitignore out/ ./*.zip
+#mv $ZIP_FILENAME ../
 
-mv $ZIP_FILENAME ../
-
-cd ..
+#cd ..
 
 
-echo "Build for AOSP finished."
+#echo "Build for AOSP finished."
 
 # ------------- End of Building for AOSP -------------
 #  If you don't need AOSP you can comment out the above block [Building for AOSP]
@@ -256,8 +230,10 @@ sed -i 's/\/\/39 01 00 00 00 00 05 51 07 FF 00 00/39 01 00 00 00 00 05 51 07 FF 
 sed -i 's/\/\/39 01 00 00 01 00 03 51 03 FF/39 01 00 00 01 00 03 51 03 FF/g' ${dts_source}/dsi-panel-j11-38-08-0a-fhd-cmd.dtsi
 sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${dts_source}/dsi-panel-j2-p2-1-38-0c-0a-dsc-cmd.dtsi
 
+#更新所有文件的时间戳为系统时间
+find . -exec touch -h {} +
 
-make $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
@@ -298,7 +274,11 @@ scripts/config --file out/.config \
     -e KPERFEVENTS \
     -e MILLET \
     -e PERF_HUMANTASK \
-    -d LTO_CLANG \
+    -e LTO_CLANG \
+    -d CONFIG_THINLTO \
+    -d CONFIG_ARCH_SUPPORTS_THINLTO \
+    -d CONFIG_LTO_NONE \
+    -d CONFIG_CFI_CLANG \
     -d LOCALVERSION_AUTO \
     -e SF_BINDER \
     -e XIAOMI_MIUI \
@@ -312,8 +292,9 @@ scripts/config --file out/.config \
     -e BOOTUP_RECLAIM \
     -e MI_RECLAIM \
     -e RTMM \
+    -e CONFIG_LD_DEAD_CODE_DATA_ELIMINATION
 
-make $MAKE_ARGS -j$(nproc)
+make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" $MAKE_ARGS -j$(nproc)
 
 
 
@@ -338,7 +319,7 @@ mkdir -p anykernel/kernels/
 # Patch for SukiSU KPM support. 
 if [ $KSU_ENABLE -eq 1 ]; then
     cd out/arch/arm64/boot/
-    wget https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.12.0/patch_linux
+    wget https://github.com/mmxdxmm/SukiSU_KernelPatch_patch/releases/download/v0.12.0/patch_linux
     chmod +x patch_linux
     ./patch_linux
     rm Image
