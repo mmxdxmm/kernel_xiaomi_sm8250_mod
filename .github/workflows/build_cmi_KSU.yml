@@ -1,4 +1,4 @@
-name: Build test
+name: Build Kernel cmi KSU
 
 on:
   workflow_dispatch:  # Manual trigger only
@@ -45,7 +45,7 @@ jobs:
 
       - name: Build Kernel
         run: |
-          bash build_test.sh cmi ksu | tee out.txt
+          bash build_thinlto.sh cmi ksu > out.txt
           [ -f out/.config ] && cp out/.config config.txt
 
       - name: Upload Artifacts
