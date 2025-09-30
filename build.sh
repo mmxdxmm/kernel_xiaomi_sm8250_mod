@@ -109,7 +109,7 @@ rm -rf out/
 rm -rf anykernel/
 
 echo "Clone AnyKernel3 for packing kernel (repo: https://github.com/mmxdxmm/AnyKernel3)"
-git clone https://github.com/mmxdxmm/AnyKernel3 -b kona --single-branch --depth=1 anykernel
+git clone https://github.com/mmxdxmm/AnyKernel3 -b main --single-branch --depth=1 anykernel
 
 # Add date to local version
 local_version_str="-perf"
@@ -327,8 +327,8 @@ if [ $KSU_ENABLE -eq 1 ]; then
     cd -
 fi
 
-cp out/arch/arm64/boot/Image anykernel/kernels/
-cp out/arch/arm64/boot/dtb anykernel/kernels/
+cp out/arch/arm64/boot/Image anykernel/
+cp out/arch/arm64/boot/dtb anykernel/
 
 echo "Build for MIUI finished."
 
