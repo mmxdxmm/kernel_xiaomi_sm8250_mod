@@ -2,22 +2,23 @@
 
 set -e
 
-if [ -f "android-ndk-r28c.zip" ]; then
+mkdir -p clang
+if [ -f "clang.tar.gz" ]; then
     echo "文件已存在，正在解压..."
-    yes | unzip android-ndk-r28c.zip
+    yes | tar -xvf clang.tar.gz -C clang
 else
     echo "文件不存在，正在下载..."
-    wget -nv -O android-ndk-r28c.zip "https://dl.google.com/android/repository/android-ndk-r28c-linux.zip"
+    wget -nv -O clang.tar.gz "https://github.com/mmxdxmm/aosp-clang/releases/download/r563880c/clang-r563880c.tar.gz"
     if [ $? -eq 0 ]; then
         echo "下载完成，正在解压..."
-        yes | unzip android-ndk-r28c.zip
+        yes | tar -xvf clang.tar.gz -C clang
     else
         echo "下载失败，请检查网络或链接是否正确。"
     fi
 fi
 
 #yes | tar -xvf electron-binutils-2.41.tar.xz
-TOOLCHAIN_PATH=$PWD/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/bin
+TOOLCHAIN_PATH=$PWD/clang/bin
 #BINUTILS_PATH=$PWD/electron-binutils-2.41/bin
 GIT_COMMIT_ID="mmxdxmm"
 
@@ -47,16 +48,15 @@ export PATH="$TOOLCHAIN_PATH:$PATH"
 
 
 # Enable ccache for speed up compiling 
-export CCACHE_DIR="$HOME/.cache/ccache_mikernel" 
-export CC="ccache clang"
-export CXX="ccache clang++"
+export CCACHE_DIR="$HOME/.cache/ccache_mikernel"
 export PATH="/usr/lib/ccache:$PATH"
 echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 
 MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
-CFLAGS="--target=aarch64-linux-android33 -I$PWD/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto -Wno-error"
-LDFLAGS="-L$PWD/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/33"
+set_CC="ccache clang -Os -ffunction-sections -fdata-sections --target=aarch64-unknown-linux-musl -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto=thin -Wno-error"
+set_LD="ld.lld --strip-debug"
+set_LDFLAGS_vmlinux="--gc-sections"
 
 
 if [ "$1" == "j1" ]; then
@@ -233,7 +233,7 @@ sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${d
 #更新所有文件的时间戳为系统时间
 find . -exec touch -h {} +
 
-make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+make LD="$set_LD" CC="$set_CC" CXX="$set_CC" LDFLAGS_vmlinux="$set_LDFLAGS_vmlinux" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
@@ -294,7 +294,7 @@ scripts/config --file out/.config \
     -e RTMM \
     -e CONFIG_LD_DEAD_CODE_DATA_ELIMINATION
 
-make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" $MAKE_ARGS -j$(nproc)
+make LD="$set_LD" CC="$set_CC" CXX="$set_CC" LDFLAGS_vmlinux="$set_LDFLAGS_vmlinux" $MAKE_ARGS -j$(nproc)
 
 
 
