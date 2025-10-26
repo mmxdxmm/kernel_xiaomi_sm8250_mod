@@ -53,7 +53,7 @@ echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 
 MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LVM=1 LLVM_IAS=1 AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump HOSTAR=llvm-ar"
-set_CC="ccache clang -v --target=aarch64-linux-gnu -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto=thin -Wno-error"
+set_CC="ccache clang -v --target=aarch64-linux-musl -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto=thin -Wno-error"
 set_HOSTCC="ccache clang -v -Os -flto=thin -Wno-error"
 set_LD="ld.lld --strip-debug"
 
