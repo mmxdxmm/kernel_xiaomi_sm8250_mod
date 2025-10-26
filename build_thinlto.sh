@@ -2,22 +2,23 @@
 
 set -e
 
-if [ -f "android-ndk-r29.zip" ]; then
+mkdir -p clang
+if [ -f "clang.tar.gz" ]; then
     echo "文件已存在，正在解压..."
-    yes | unzip android-ndk-r29.zip
+    yes | tar -xvf clang.tar.gz -C clang
 else
     echo "文件不存在，正在下载..."
-    wget -nv -O android-ndk-r29.zip "https://dl.google.com/android/repository/android-ndk-r29-linux.zip"
+    wget -nv -O clang.tar.gz "https://github.com/mmxdxmm/aosp-clang/releases/download/r563880c/clang-r563880c.tar.gz"
     if [ $? -eq 0 ]; then
         echo "下载完成，正在解压..."
-        yes | unzip android-ndk-r29.zip
+        yes | tar -xvf clang.tar.gz -C clang
     else
         echo "下载失败，请检查网络或链接是否正确。"
     fi
 fi
 
 #yes | tar -xvf electron-binutils-2.41.tar.xz
-TOOLCHAIN_PATH=$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/bin
+TOOLCHAIN_PATH=$PWD/clang/bin
 #BINUTILS_PATH=$PWD/electron-binutils-2.41/bin
 GIT_COMMIT_ID="mmxdxmm"
 
@@ -53,7 +54,7 @@ echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 
 MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LVM=1 LLVM_IAS=1 AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump HOSTAR=llvm-ar CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
-set_CC="ccache clang --target=aarch64-linux-android35 --sysroot=$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/ -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto=thin -Wno-error"
+set_CC="ccache clang --target=aarch64-linux-musl --sysroot=$PWD/clang/ -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto=thin -Wno-error"
 set_HOSTCC="ccache clang -Os -flto=thin -Wno-error"
 set_LD="ld.lld --strip-debug"
 
