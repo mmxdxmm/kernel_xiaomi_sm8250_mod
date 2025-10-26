@@ -52,9 +52,9 @@ export PATH="/usr/lib/ccache:$PATH"
 echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 
-MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
-CFLAGS="--target=aarch64-linux-android35 -I$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto -Wno-error -ffunction-sections -fdata-sections"
-LDFLAGS="-L$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/35"
+MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
+set_C="--target=aarch64-linux-android35 --sysroot=/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/ -I$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/ -I$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/ -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto=thin -Wno-error -ffunction-sections -fdata-sections"
+set_LD="ld.lld -L$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/35/ -L$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/ --strip-debug"
 
 
 if [ "$1" == "j1" ]; then
@@ -231,7 +231,7 @@ sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${d
 #更新所有文件的时间戳为系统时间
 find . -exec touch -h {} +
 
-make CC="ccache clang -v" CXX="ccache clang -v" CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+make CC="ccache clang -v" CXX="ccache clang -v" KBUILD_CFLAGS="$set_C" LD="$set_LD" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
@@ -294,7 +294,7 @@ scripts/config --file out/.config \
     -d CONFIG_MODULES \
     -d CONFIG_CC_WERROR
 
-make CC="ccache clang -v" CXX="ccache clang -v" CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS -j$(nproc)
+make CC="ccache clang -v" CXX="ccache clang -v" KBUILD_CFLAGS="$set_C" LD="$set_LD" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS -j$(nproc)
 
 
 
@@ -313,8 +313,8 @@ find out/arch/arm64/boot/dts -name '*.dtb' -exec cat {} + >out/arch/arm64/boot/d
 rm -rf ${dts_source}
 mv .dts.bak ${dts_source}
 
-rm -rf anykernel/kernels/
-mkdir -p anykernel/kernels/
+rm -rf anykernel/Image
+rm -rf anykernel/dtb
 
 # Patch for SukiSU KPM support. 
 if [ $KSU_ENABLE -eq 1 ]; then
