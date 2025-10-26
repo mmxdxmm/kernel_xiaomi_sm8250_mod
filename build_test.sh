@@ -234,7 +234,7 @@ sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${d
 #更新所有文件的时间戳为系统时间
 find . -exec touch -h {} +
 
-make LD="$set_LD" HOSTLD="$set_HOSTLD" CC="$set_CC" CXX="$set_CC" HOSTCC="$set_HOSTCC" HOSTCXX="$set_HOSTCC" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+make LD="$set_LD" HOSTLD="$set_HOSTLD" CC="$set_CC" CXX="$set_CC" HOSTCC="$set_HOSTCC" HOSTCXX="$set_HOSTCC" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
@@ -295,7 +295,7 @@ scripts/config --file out/.config \
     -e RTMM \
     -e CONFIG_LD_DEAD_CODE_DATA_ELIMINATION
 
-make LD="$set_LD" HOSTLD="$set_HOSTLD" CC="$set_CC" CXX="$set_CC" HOSTCC="$set_HOSTCC" HOSTCXX="$set_HOSTCC" $MAKE_ARGS -j$(nproc)
+make LD="$set_LD" HOSTLD="$set_HOSTLD" CC="$set_CC" CXX="$set_CC" HOSTCC="$set_HOSTCC" HOSTCXX="$set_HOSTCC" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS -j$(nproc)
 
 
 
