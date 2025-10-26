@@ -52,9 +52,10 @@ export PATH="/usr/lib/ccache:$PATH"
 echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 
-MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
-set_C="--target=aarch64-linux-android35 --sysroot=/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/ -I$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/ -I$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/ -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto=thin -Wno-error -ffunction-sections -fdata-sections"
-set_LD="ld.lld -L$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/35/ -L$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/ --strip-debug"
+MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LVM=1 LLVM_IAS=1 AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump HOSTAR=llvm-ar CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
+set_CC="ccache clang -v --target=aarch64-linux-android35 --sysroot=/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/ -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto=thin -Wno-error"
+set_HOSTCC="ccache clang -v -Os -flto=thin -Wno-error"
+set_LD="ld.lld --strip-debug"
 
 
 if [ "$1" == "j1" ]; then
@@ -107,7 +108,7 @@ rm -rf out/
 rm -rf anykernel/
 
 echo "Clone AnyKernel3 for packing kernel (repo: https://github.com/mmxdxmm/AnyKernel3)"
-git clone https://github.com/mmxdxmm/AnyKernel3 -b main --single-branch --depth=1 anykernel
+git clone https://github.com/mmxdxmm/AnyKernel3 -b kona --single-branch --depth=1 anykernel
 
 # Add date to local version
 local_version_str="-perf"
@@ -231,7 +232,7 @@ sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${d
 #更新所有文件的时间戳为系统时间
 find . -exec touch -h {} +
 
-make CC="ccache clang -v" CXX="ccache clang -v" KBUILD_CFLAGS="$set_C" LD="$set_LD" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+make LD="$set_LD" HOSTLD="$set_LD" CC="$set_CC" CXX="$set_CC" HOSTCC="$set_HOSTCC" HOSTCXX="$set_HOSTCC" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
@@ -290,11 +291,9 @@ scripts/config --file out/.config \
     -e BOOTUP_RECLAIM \
     -e MI_RECLAIM \
     -e RTMM \
-    -e CONFIG_LD_DEAD_CODE_DATA_ELIMINATION \
-    -d CONFIG_MODULES \
-    -d CONFIG_CC_WERROR
+    -e CONFIG_LD_DEAD_CODE_DATA_ELIMINATION
 
-make CC="ccache clang -v" CXX="ccache clang -v" KBUILD_CFLAGS="$set_C" LD="$set_LD" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS -j$(nproc)
+make LD="$set_LD" HOSTLD="$set_LD" CC="$set_CC" CXX="$set_CC" HOSTCC="$set_HOSTCC" HOSTCXX="$set_HOSTCC" $MAKE_ARGS -j$(nproc)
 
 
 
@@ -313,8 +312,8 @@ find out/arch/arm64/boot/dts -name '*.dtb' -exec cat {} + >out/arch/arm64/boot/d
 rm -rf ${dts_source}
 mv .dts.bak ${dts_source}
 
-rm -rf anykernel/Image
-rm -rf anykernel/dtb
+rm -rf anykernel/kernels/
+mkdir -p anykernel/kernels/
 
 # Patch for SukiSU KPM support. 
 if [ $KSU_ENABLE -eq 1 ]; then
@@ -327,8 +326,8 @@ if [ $KSU_ENABLE -eq 1 ]; then
     cd -
 fi
 
-cp out/arch/arm64/boot/Image anykernel/
-cp out/arch/arm64/boot/dtb anykernel/
+cp out/arch/arm64/boot/Image anykernel/kernels/
+cp out/arch/arm64/boot/dtb anykernel/kernels/
 
 echo "Build for MIUI finished."
 
