@@ -2,22 +2,23 @@
 
 set -e
 
-if [ -f "android-ndk-r29.zip" ]; then
+mkdir -p clang
+if [ -f "clang.tar.gz" ]; then
     echo "文件已存在，正在解压..."
-    yes | unzip android-ndk-r29.zip
+    yes | tar -xvf clang.tar.gz -C clang
 else
     echo "文件不存在，正在下载..."
-    wget -nv -O android-ndk-r29.zip "https://dl.google.com/android/repository/android-ndk-r29-linux.zip"
+    wget -nv -O clang.tar.gz "https://github.com/mmxdxmm/aosp-clang/releases/download/r563880c/clang-r563880c.tar.gz"
     if [ $? -eq 0 ]; then
         echo "下载完成，正在解压..."
-        yes | unzip android-ndk-r29.zip
+        yes | tar -xvf clang.tar.gz -C clang
     else
         echo "下载失败，请检查网络或链接是否正确。"
     fi
 fi
 
 #yes | tar -xvf electron-binutils-2.41.tar.xz
-TOOLCHAIN_PATH=$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/bin
+TOOLCHAIN_PATH=$PWD/clang/bin
 #BINUTILS_PATH=$PWD/electron-binutils-2.41/bin
 GIT_COMMIT_ID="mmxdxmm"
 
