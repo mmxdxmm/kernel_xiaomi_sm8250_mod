@@ -53,7 +53,7 @@ echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 
 MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LVM=1 LLVM_IAS=1 AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump HOSTAR=llvm-ar CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
-set_CC="ccache clang -v --target=aarch64-linux-android35 --sysroot=/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/ -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto=thin -Wno-error"
+set_CC="ccache clang -v --target=aarch64-linux-android35 --sysroot=$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/ -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto=thin -Wno-error"
 set_HOSTCC="ccache clang -v -Os -flto=thin -Wno-error"
 set_LD="ld.lld --strip-debug"
 
@@ -108,7 +108,7 @@ rm -rf out/
 rm -rf anykernel/
 
 echo "Clone AnyKernel3 for packing kernel (repo: https://github.com/mmxdxmm/AnyKernel3)"
-git clone https://github.com/mmxdxmm/AnyKernel3 -b kona --single-branch --depth=1 anykernel
+git clone https://github.com/mmxdxmm/AnyKernel3 -b main --single-branch --depth=1 anykernel
 
 # Add date to local version
 local_version_str="-perf"
@@ -312,8 +312,8 @@ find out/arch/arm64/boot/dts -name '*.dtb' -exec cat {} + >out/arch/arm64/boot/d
 rm -rf ${dts_source}
 mv .dts.bak ${dts_source}
 
-rm -rf anykernel/kernels/
-mkdir -p anykernel/kernels/
+rm -rf anykernel/Image
+rm -rf anykernel/dtb
 
 # Patch for SukiSU KPM support. 
 if [ $KSU_ENABLE -eq 1 ]; then
@@ -326,8 +326,8 @@ if [ $KSU_ENABLE -eq 1 ]; then
     cd -
 fi
 
-cp out/arch/arm64/boot/Image anykernel/kernels/
-cp out/arch/arm64/boot/dtb anykernel/kernels/
+cp out/arch/arm64/boot/Image anykernel/
+cp out/arch/arm64/boot/dtb anykernel/
 
 echo "Build for MIUI finished."
 
