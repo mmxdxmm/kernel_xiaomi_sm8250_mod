@@ -2,23 +2,22 @@
 
 set -e
 
-mkdir -p clang
-if [ -f "clang.tar.gz" ]; then
+if [ -f "android-ndk-r29.zip" ]; then
     echo "文件已存在，正在解压..."
-    yes | tar -xvf clang.tar.gz -C clang
+    yes | unzip android-ndk-r29.zip
 else
     echo "文件不存在，正在下载..."
-    wget -nv -O clang.tar.gz "https://github.com/mmxdxmm/aosp-clang/releases/download/r563880c/clang-r563880c.tar.gz"
+    wget -nv -O android-ndk-r29.zip "https://dl.google.com/android/repository/android-ndk-r29-linux.zip"
     if [ $? -eq 0 ]; then
         echo "下载完成，正在解压..."
-        yes | tar -xvf clang.tar.gz -C clang
+        yes | unzip android-ndk-r29.zip
     else
         echo "下载失败，请检查网络或链接是否正确。"
     fi
 fi
 
 #yes | tar -xvf electron-binutils-2.41.tar.xz
-TOOLCHAIN_PATH=$PWD/clang/bin
+TOOLCHAIN_PATH=$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/bin
 #BINUTILS_PATH=$PWD/electron-binutils-2.41/bin
 GIT_COMMIT_ID="mmxdxmm"
 
@@ -48,15 +47,16 @@ export PATH="$TOOLCHAIN_PATH:$PATH"
 
 
 # Enable ccache for speed up compiling 
-export CCACHE_DIR="$HOME/.cache/ccache_mikernel"
+export CCACHE_DIR="$HOME/.cache/ccache_mikernel" 
+export CC="ccache clang -v"
+export CXX="ccache clang++ -v"
 export PATH="/usr/lib/ccache:$PATH"
 echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 
-MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LVM=1 LLVM_IAS=1 AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump HOSTAR=llvm-ar CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
-set_CC="ccache clang -Os -v -ffunction-sections -fdata-sections --target=aarch64-unknown-linux-musl -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto=thin -Wno-error"
-set_LD="ld.lld --strip-debug"
-set_LDFLAGS_vmlinux="--gc-sections"
+MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- CLANG_TRIPLE=aarch64-linux-gnu-"
+CFLAGS="--target=aarch64-linux-android35 -I$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto -Wno-error -ffunction-sections -fdata-sections"
+LDFLAGS="-L$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/35"
 
 
 if [ "$1" == "j1" ]; then
@@ -109,7 +109,7 @@ rm -rf out/
 rm -rf anykernel/
 
 echo "Clone AnyKernel3 for packing kernel (repo: https://github.com/mmxdxmm/AnyKernel3)"
-git clone https://github.com/mmxdxmm/AnyKernel3 -b kona --single-branch --depth=1 anykernel
+git clone https://github.com/mmxdxmm/AnyKernel3 -b main --single-branch --depth=1 anykernel
 
 # Add date to local version
 local_version_str="-perf"
@@ -233,7 +233,7 @@ sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${d
 #更新所有文件的时间戳为系统时间
 find . -exec touch -h {} +
 
-make LD="$set_LD" HOSTLD="$set_LD" CC="$set_CC" CXX="$set_CC" HOSTCC="$set_CC" HOSTCXX="$set_CC" LDFLAGS_vmlinux="$set_LDFLAGS_vmlinux" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
@@ -296,7 +296,7 @@ scripts/config --file out/.config \
     -d CONFIG_MODULES \
     -d CONFIG_CC_WERROR
 
-make LD="$set_LD" HOSTLD="$set_LD" CC="$set_CC" CXX="$set_CC" HOSTCC="$set_CC" HOSTCXX="$set_CC" LDFLAGS_vmlinux="$set_LDFLAGS_vmlinux" $MAKE_ARGS -j$(nproc)
+make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS -j$(nproc)
 
 
 
@@ -329,8 +329,8 @@ if [ $KSU_ENABLE -eq 1 ]; then
     cd -
 fi
 
-cp out/arch/arm64/boot/Image anykernel/kernels/
-cp out/arch/arm64/boot/dtb anykernel/kernels/
+cp out/arch/arm64/boot/Image anykernel/
+cp out/arch/arm64/boot/dtb anykernel/
 
 echo "Build for MIUI finished."
 
