@@ -54,9 +54,9 @@ echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LVM=1 LLVM_IAS=1 AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump HOSTAR=llvm-ar"
 set_CC="ccache clang -v --target=aarch64-linux-android --sysroot=$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/ -I$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/ -I$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/ -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto=thin -Wno-error"
-set_HOSTCC="ccache clang -v --target=x86_64-linux-gnu --sysroot=/ -I$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/x86_64-linux-android/ -I$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/ -Os -flto=thin -Wno-error"
+set_HOSTCC="ccache clang -v --target=x86_64-linux-gnu --sysroot=/ -Os -flto=thin -Wno-error"
 set_LD="ld.lld -L$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/35/ -L$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/ --strip-debug"
-set_HOSTLD="ld.lld -L$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/x86_64-linux-android/35/ -L$PWD/android-ndk-r29/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/x86_64-linux-android/ --strip-debug"
+set_HOSTLD="ld.lld --strip-debug"
 
 
 if [ "$1" == "j1" ]; then
