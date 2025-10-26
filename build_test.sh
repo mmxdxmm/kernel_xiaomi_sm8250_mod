@@ -47,9 +47,7 @@ export PATH="$TOOLCHAIN_PATH:$PATH"
 
 
 # Enable ccache for speed up compiling 
-export CCACHE_DIR="$HOME/.cache/ccache_mikernel" 
-export CC="ccache clang -v"
-export CXX="ccache clang++ -v"
+export CCACHE_DIR="$HOME/.cache/ccache_mikernel"
 export PATH="/usr/lib/ccache:$PATH"
 echo "CCACHE_DIR: [$CCACHE_DIR]"
 
@@ -233,7 +231,7 @@ sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${d
 #更新所有文件的时间戳为系统时间
 find . -exec touch -h {} +
 
-make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
+make CC="ccache clang -v" CXX="ccache clang -v" CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS ${TARGET_DEVICE}_defconfig
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
@@ -296,7 +294,7 @@ scripts/config --file out/.config \
     -d CONFIG_MODULES \
     -d CONFIG_CC_WERROR
 
-make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS -j$(nproc)
+make CC="ccache clang -v" CXX="ccache clang -v" CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" LDFLAGS_vmlinux="--gc-sections" $MAKE_ARGS -j$(nproc)
 
 
 
