@@ -8,7 +8,7 @@ if [ -f "clang.tar.gz" ]; then
     yes | tar -xvf clang.tar.gz -C clang
 else
     echo "文件不存在，正在下载..."
-    wget -nv -O clang.tar.gz "https://github.com/mmxdxmm/aosp-clang/releases/download/r563880c/clang-r563880c.tar.gz"
+    wget -nv -O clang.tar.gz "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/mirror-goog-main-llvm-toolchain-source/clang-r596125.tar.gz"
     if [ $? -eq 0 ]; then
         echo "下载完成，正在解压..."
         yes | tar -xvf clang.tar.gz -C clang
@@ -53,11 +53,11 @@ export PATH="/usr/lib/ccache:$PATH"
 echo "CCACHE_DIR: [$CCACHE_DIR]"
 
 
-MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LVM=1 LLVM_IAS=1 AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump HOSTAR=llvm-ar"
+MAKE_ARGS="ARCH=arm64 SUBARCH=arm64 O=out LLVM=1 LLVM_IAS=1 AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump HOSTAR=llvm-ar"
 set_C="ccache clang --target=aarch64-linux-musl -Os -march=armv8.2-a+lse+crypto+dotprod -mcpu=cortex-a77 -flto=thin -Wno-error -ffunction-sections -fdata-sections"
 set_HOSTC="ccache clang -Os -flto=thin -Wno-error -ffunction-sections -fdata-sections"
-set_LD="ld.lld --strip-debug"
-set_HOSTLD="ld.lld --strip-debug --gc-sections"
+set_LD="ld.lld --strip-debug -O2 --plugin-opt=O2"
+set_HOSTLD="ld.lld --strip-debug --gc-sections -O2 --plugin-opt=O2"
 
 
 if [ "$1" == "j1" ]; then
